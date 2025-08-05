@@ -1,0 +1,129 @@
+.page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+/* main card */
+.product-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px- 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-width: 380px; /* This is perfect for mobile */
+  width: 100%;
+  text-align: left;
+}
+
+
+.product-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.product-info {
+  padding: 24px;
+}
+
+.product-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.product-price {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0d6efd;
+  margin: 0 0 16px 0;
+}
+
+.product-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.buy-now-button {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #0d6efd;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+.buy-now-button:hover {
+  background-color: #0b5ed7;
+}
+
+.buy-now-button:active {
+  transform: scale(0.98);
+}
+
+.payment-message {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #096dd9;
+}
+
+
+/*
+================================================================
+MODIFICATION: DESKTOP STYLES (for screens wider than 768px)
+================================================================
+*/
+@media (min-width: 768px) {
+  .product-card {
+    /* Make the card wider on desktops */
+    max-width: 900px;
+    /* This is the magic! It turns the card into a two-column layout */
+    display: flex;
+  }
+
+  /* The image container will now be the left column */
+  .product-image-container {
+    flex-basis: 50%; /* Take up 50% of the card's width */
+    flex-shrink: 0; /* Prevent the image from shrinking */
+  }
+
+  /* The image should fill its container vertically */
+  .product-image {
+    height: 100%;
+    aspect-ratio: auto; /* Reset aspect ratio to fill the container */
+  }
+
+  /* The info container will now be the right column */
+  .product-info {
+    flex-basis: 50%;
+    /* Add more padding to give it space */
+    padding: 40px;
+    /* Center the content vertically within the column */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .product-name {
+    font-size: 2rem; /* Make text bigger on desktop */
+  }
+
+  .product-price {
+    font-size: 2.25rem;
+  }
+}
