@@ -6,6 +6,7 @@ function App() {
   return (
     <>
       <div>
+        <h1>Hello Initiate-Pay</h1>
        </div>
     </>
   )
