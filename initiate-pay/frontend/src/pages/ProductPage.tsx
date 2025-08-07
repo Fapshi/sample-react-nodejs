@@ -6,9 +6,9 @@ import productImage from '../assets/image.png';
 
 const product = {
   id: 'prod_12345',
-  name: 'Sun Glasses',
-  price: 2000,
-  description: 'Nice glasses for sunny days',
+  name: 'Nike Shoe',
+  price: 100,
+  description: 'Nice shoes for walking and running',
   imageUrl: productImage,
 };
 
@@ -21,6 +21,7 @@ const ProductPage: React.FC = () => {
     setShowPaymentMessage(true);
     setTimeout(() => setShowPaymentMessage(false), 4000);
   };
+  const color = "#F6F6F6 #535bf2 #FFFFFF";
 
   return (
     <div className="page-container">
