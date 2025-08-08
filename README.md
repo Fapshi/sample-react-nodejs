@@ -23,10 +23,6 @@ This repository contains two folders showing different ways to use the Fapshi AP
 /initiate-pay    → Initiate Pay (More controlled flow, two-step process)
 ```
 
-> ⚠️ **Important Note about Direct Pay:**  
-> The **Direct Pay** method is **blocked by default in Live Mode** for security reasons.  
-> To activate Direct Pay in production, please contact Fapshi Support at [support@fapshi.com](mailto:support@fapshi.com).
-
 ---
 
 ## 🚀 Features
