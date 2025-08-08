@@ -1,3 +1,4 @@
+import Payment from "./pages/payment"
 
 function App() {
  
@@ -6,6 +7,7 @@ function App() {
     <>
       <div>
         <h1>Hello Direct Pay</h1>
+        <Payment />
       </div>
     </>
   )
