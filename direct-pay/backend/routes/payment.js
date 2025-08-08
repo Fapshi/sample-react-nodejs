@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { initiatePayment, confirmPayment } = require('../controllers/paymentController');
+const { directPay } = require('../controllers/paymentController');
 
-router.post('/initiate', initiatePayment);
-router.post('/confirm', confirmPayment);
+router.post('/direct-pay', directPay);
 
 module.exports = router;

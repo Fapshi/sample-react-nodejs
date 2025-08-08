@@ -1,39 +1,48 @@
-const { callFapshiInitiate, callFapshiConfirm } = require('../services/fapshiService');
+const { callFapshiInitiate } = require('../services/fapshiService');
 
-exports.initiatePayment = async (req, res) => {
+exports.directPay = async (req, res) => {
+  console.log('🟢 Direct Pay called with:', req.body);
   try {
-    const { amount, currency, customer } = req.body;
-    const response = await callFapshiInitiate(amount, currency, customer);
-    res.status(200).json(response);
-  } catch (error) {
-    console.error(error?.response?.data || error);
-    res.status(500).json({ error: 'Failed to initiate payment' });
-  }
-};
+    const {
+      amount,
+      phone,
+      name,
+      email,
+      medium = 'mobile money',
+      userId = 'guest_user',
+      externalId = `txn_${Date.now()}`,
+      message = 'Payment from Ghost',
+    } = req.body;
 
-exports.confirmPayment = async (req, res) => {
-  try {
-    const { transactionId } = req.body;
+    if (!amount || !phone || !name || !email) {
+      return res.status(400).json({ error: 'Missing required fields: amount, phone, name, email' });
+    }
 
-    const response = await callFapshiConfirm(transactionId);
-
-    // Assume the Fapshi confirm response gives something like:
-    // { status: "SUCCESSFUL", amount: 180, currency: "XAF", customer: "+237...", description: "...", timestamp: "..." }
-
-    // Compose the data your frontend needs:
-    const paymentInfo = {
-      status: response.status || 'SUCCESSFUL',  // fallback if API doesn't return
-      transactionId: response.transactionId || transactionId,
-      amount: `${response.currency || 'XAF'} ${response.amount}`,
-      phoneNumber: response.customer,
-      description: response.description || 'Business',
-      date: new Date().toLocaleString('en-US', { timeZone: 'Africa/Douala' }),  // you can replace with server time or API timestamp
+    const data = {
+      amount,
+      phone,
+      name,
+      email,
+      medium,
+      userId,
+      externalId,
+      message,
     };
 
-    res.status(200).json(paymentInfo);
+    const response = await callFapshiInitiate(data);
+
+    const result = {
+      transactionId: response.transId,
+      phone,
+      amount,
+      dateInitiated: response.dateInitiated,
+    };
+
+    console.log('✅ Direct Pay response:', result);
+
+    res.status(200).json(result);
   } catch (error) {
-    console.error(error?.response?.data || error);
-    res.status(500).json({ error: 'Failed to confirm payment' });
+    console.error('❌ Direct Pay error:', error.message);
+    res.status(500).json({ error: 'Failed to initiate direct pay' });
   }
 };
-
