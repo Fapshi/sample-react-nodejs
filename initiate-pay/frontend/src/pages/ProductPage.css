@@ -208,7 +208,7 @@
     }
 
     .product-name {
-        font-size: 36px;
+        font-size: 28px;
         font-weight: 700;
         color: #1a1a1a;
         margin: 0 0 20px 0;
@@ -224,14 +224,13 @@
         padding: 0;
     }
 
-    .product-description {
+    .product-description-container p{
         font-size: 16px;
         font-weight: 400;
         line-height: 1.6;
-        color: #666;
+        color: #0d0d0d;
         margin: 0 0 20px 0;
     }
-
     .ratings {
         margin-bottom: 30px;
         padding-bottom: 30px;
@@ -241,8 +240,8 @@
 
     .ratings .star-icon {
         color: #3f5cfd;
-        width: 20px;
-        height: 20px;
+        width: 16px;
+        height: 16px;
         margin-right: 4px;
         fill: currentColor;
     }
