@@ -27,7 +27,8 @@ const ProductPage: React.FC = () => {
       const paymentData = {
         amount: product.price,
         externalId: product.id,
-        message: `Payment for ${product.name}`
+        message: `Payment for ${product.name}`,
+        redirectUrl: 'http://localhost:5173/payment-success' // Replace with actual success page URL
       };
 
       const response = await paymentService.initiatePayment(paymentData);
@@ -39,18 +40,17 @@ const ProductPage: React.FC = () => {
 
       if (paymentLink) {
         console.log('Redirecting to payment link:', paymentLink);
-        setPaymentMessage('Redirecting to payment...');
-        setShowPaymentMessage(true);
 
-        // Redirect to payment link after a short delay
-        setTimeout(() => {
-          window.location.href = paymentLink;
-        }, 1500);
+        // Keep loading state active and redirect immediately
+        // Don't set isLoading to false since we're redirecting
+        window.location.href = paymentLink;
+        return; // Exit early to avoid setting isLoading to false
       } else {
         // Fallback if no payment link is provided
         setPaymentMessage(`Payment initiated! Transaction ID: ${response.transId}`);
         setShowPaymentMessage(true);
         setTimeout(() => setShowPaymentMessage(false), 6000);
+        setIsLoading(false);
       }
 
     } catch (error) {
@@ -60,11 +60,9 @@ const ProductPage: React.FC = () => {
 
       // Hide error message after 4 seconds
       setTimeout(() => setShowPaymentMessage(false), 4000);
-    } finally {
       setIsLoading(false);
     }
   };
-  //const color = "#F6F6F6 #3f5cfd #FFFFFF";
 
   return (
     <div className="page-container">
