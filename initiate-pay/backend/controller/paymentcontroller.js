@@ -1,97 +1,64 @@
-const axios = require('axios');
-const { baseUrl, headers, timeout } = require('../config/fapshi.config');
+require('dotenv').config({ path: '.env' });
+const express = require('express');
+const cors = require('cors');
 
-// In-memory store to remember client-provided redirect URLs per transaction
-// Note: for production, persist this in a DB or include the URL on the frontend side.
-const redirectStore = new Map();
+// Initialize Express app
+const app = express();
+const port = process.env.PORT || 5000;
 
-// Initiate payment
-const initiatePayment = async (req, res) => {
-  try {
-    const {
-      amount,
-      email,
-      userId,
-      externalId,
-      message,
-      // optional redirect hints from client (we DO NOT forward to Fapshi, just store locally)
-      redirectUrl,
-      redirect_url,
-      redirectURL,
-      returnUrl,
-      return_url,
-      callbackUrl,
-      callback_url,
-    } = req.body;
-    const payload = { amount };
-    if (email) payload.email = email;
-    if (userId) payload.userId = userId;
-    if (externalId) payload.externalId = externalId;
-    if (message) payload.message = message;
-    const response = await axios.post(
-      `${baseUrl}/initiate-pay`,
-      payload,
-      { 
-        headers,
-        timeout
+// Minimal middleware
+app.use(cors());
+app.use(express.json());
+
+// Log concise info from API JSON responses (avoid amounts)
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    try {
+      if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+        // For initiate endpoint, print a compact JSON with the specific fields the user wants
+        if (req.originalUrl.startsWith('/api/payment/initiate')) {
+          const compact = {
+            message: 'Payment successful',
+            link: body?.link || body?.paymentLink || body?.url,
+            transId: body?.transId || body?.transactionId,
+            dateInitiated: body?.dateInitiated || body?.createdAt || body?.initiatedAt,
+            redirectUrl: body?.redirectUrl || body?.redirect_url
+          };
+          console.log(JSON.stringify(compact, null, 2));
+        } else {
+          // Generic case: only print a single message-like field when present
+          const msg = body && (body.message || body.msg || body.status || body.error);
+          if (msg) {
+            console.log(`[API ${req.method} ${req.originalUrl}] message: ${msg}`);
+          } else {
+            console.log(`[API ${req.method} ${req.originalUrl}] response sent`);
+          }
+        }
       }
-    );
-    // If client provided a redirect URL, store it by transaction ID for later use
-    const redirectValue = redirectUrl || redirect_url || redirectURL || returnUrl || return_url || callbackUrl || callback_url;
-    const transId = response.data?.transId || response.data?.transactionId;
-    if (redirectValue && transId) {
-      redirectStore.set(String(transId), String(redirectValue));
+    } catch (_) {
+      // no-op
     }
-    // Return upstream response and echo redirectUrl if provided
-    res.json({ ...response.data, redirectUrl: redirectValue || null });
+    return originalJson(body);
+  };
+  next();
+});
 
-  } catch (error) {
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || 'Failed to initiate payment';
-    res.status(status).json({ error: message });
-  }
-};
+// API Routes
+const paymentRoutes = require('./routes/paymentRoutes');
+app.use('/api/payment', paymentRoutes);
 
-// Get payment status
-const getPaymentStatus = async (req, res) => {
-  try {
-    const { transactionId } = req.params;
+// Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
-    const response = await axios.get(
-      `${baseUrl}/payment-status/${transactionId}`,
-      { 
-        headers,
-        timeout
-      }
-    );
-    // Build optional success redirect URL if payment succeeded
-    const data = response.data || {};
-    const status = data.status || data.paymentStatus || data.state;
-    const transId = String(data.transId || data.transactionId || transactionId);
-    // Prefer client-provided redirect for this transaction, then env fallback
-    const clientProvided = redirectStore.get(transId);
-    const baseSuccess = clientProvided || process.env.SUCCESS_REDIRECT_URL || process.env.CLIENT_SUCCESS_URL || 'http://localhost:5173/payment-success';
-    const isSuccess = typeof status === 'string' && ['SUCCESS','COMPLETED','CONFIRMED','PAID','SUCCESSFUL'].includes(status.toUpperCase());
-
-    const payload = { success: true, ...data };
-    if (isSuccess && baseSuccess) {
-      const url = new URL(baseSuccess);
-      if (transId) url.searchParams.set('transId', String(transId));
-      payload.successRedirectUrl = url.toString();
-    }
-    res.json(payload);
-
-  } catch (error) {
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || 'Failed to get payment status';
-    res.status(status).json({
-      success: false,
-      error: message
-    });
-  }
-};
-
-module.exports = {
-  initiatePayment,
-  getPaymentStatus
-};
+// Start server
+const server = app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+module.exports = { app, server };
