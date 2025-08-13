@@ -1,8 +1,8 @@
 const axios = require('axios');
 require('dotenv').config();
 
-// Fapshi API configuration - Using Sandbox
-const baseUrl = 'https://sandbox.fapshi.com';
+// Fapshi API configuration
+const fapshiConfig = require('../config/fapshi.config');
 
 // Helper function to create error response
 const createError = (message, status = 500) => ({
@@ -14,7 +14,7 @@ const createError = (message, status = 500) => ({
 // Initiate payment
 const initiatePayment = async (req, res) => {
   try {
-    const { amount, redirectUrl } = req.body;
+    const { amount, redirectUrl, email, phone } = req.body;
 
     // Input validation
     if (!amount) return res.status(400).json({ error: 'Amount is required' });
@@ -26,30 +26,32 @@ const initiatePayment = async (req, res) => {
     if (redirectUrl) {
       paymentPayload.redirectUrl = redirectUrl;
     }
+    if (email) {
+      paymentPayload.email = email;
+    }
+    if (phone) {
+      paymentPayload.phone = phone;
+    }
+    // Note: 'medium' intentionally not supported
     
     const response = await axios.post(
-      `${baseUrl}/initiate-pay`,
+      `${fapshiConfig.baseUrl}/initiate-pay`,
       paymentPayload,
-      { 
-        headers: {
-          'Content-Type': 'application/json',
-          'apiuser': '31189c1e-6241-4b1f-8a52-63edbac297c1',
-          'apikey': 'FAK_TEST_481b28d80c3f61ec54ca'
-        },
-        timeout: 10000
+      {
+        headers: fapshiConfig.headers,
+        timeout: fapshiConfig.timeout
       }
     );
     
-    // Log the full Fapshi response in the server terminal
-    console.log('\nPayment processed successfully:');
-    
     // Create a new response with our custom message
     const paymentResponse = {
-      ...response.data,  // Include all original response data
-      message: 'Payment successful'  // Override the message
+      ...response.data,  // Include all original response data from Fapshi
+      message: 'Payment successful',
+      // Echo back client-provided values for frontend Success page
+      amount,
+      email: email || response.data?.email || undefined,
+      phone: phone || response.data?.phone || undefined
     };
-    
-    console.log(JSON.stringify(paymentResponse, null, 2) + '\n');
     
     // Return our custom response
     res.json(paymentResponse);
@@ -73,17 +75,11 @@ const getPaymentStatus = async (req, res) => {
       });
     }
 
-    const headers = {
-      'Content-Type': 'application/json',
-      'apiuser': '31189c1e-6241-4b1f-8a52-63edbac297c1',
-      'apikey': 'FAK_TEST_481b28d80c3f61ec54ca'
-    };
-
     const response = await axios.get(
-      `${baseUrl}/payment-status/${transactionId}`,
-      { 
-        headers,
-        timeout: 10000
+      `${fapshiConfig.baseUrl}/payment-status/${transactionId}`,
+      {
+        headers: fapshiConfig.headers,
+        timeout: fapshiConfig.timeout
       }
     );
 
