@@ -4,10 +4,9 @@ This is a simple full-stack demo project that shows how to integrate [Fapshi](ht
 
 It demonstrates how developers can:
 
-- Generate a payment link via Fapshi's API (initiate pay)
-- Redirect users to pay
-- Handle post-payment redirection or display a success message
-- Handle payments with your own custom checkout page (direct pay)
+- Generate a payment link via Fapshi's API
+- Redirect users to complete their payment
+- Handle post-payment redirection
 - Handle webhooks for payment status updates
 
 Check the [Fapshi Documentation](https://docs.fapshi.com/en/docs/api-reference/getting-started) for details on the API and endpoints
@@ -16,16 +15,11 @@ Check the [Fapshi Documentation](https://docs.fapshi.com/en/docs/api-reference/g
 
 ## 📁 Project Structure
 
-This repository contains two folders showing different ways to use the Fapshi API:
+This repository contains the implementation of Fapshi's payment integration:
 
 ```
-/direct-pay      → Direct Pay (Single-call payment link creation)
-/initiate-pay    → Initiate Pay (More controlled flow, two-step process)
+/initiate-pay    → Implementation of the payment integration
 ```
-
-> ⚠️ **Important Note about Direct Pay:**  
-> The **Direct Pay** method is **blocked by default in Live Mode** for security reasons.  
-> To activate Direct Pay in production, please contact Fapshi Support at [support@fapshi.com](mailto:support@fapshi.com).
 
 ---
 
@@ -33,7 +27,6 @@ This repository contains two folders showing different ways to use the Fapshi AP
 
 - Frontend: React (with Vite or CRA)
 - Backend: Node.js with Express
-- Demonstrates both **Direct Pay** and **Initiate Pay** flows
 - Example use case: simple product checkout
 - Clean, beginner-friendly code
 - Easily extendable to fit real-world scenarios
@@ -59,20 +52,13 @@ git clone https://github.com/fapshi/sample-react-nodejs.git
 cd sample-react-nodejs
 ```
 
-### 2. Choose the Integration Flow
+### 2. Navigate to the project directory
 
-- For **Direct Pay**, navigate to:
+```bash
+cd initiate-pay
+```
 
-  ```bash
-  cd direct-pay
-  ```
-
-- For **Initiate Pay**, navigate to:
-  ```bash
-  cd initiate-pay
-  ```
-
-Each folder contains its own `backend` and `frontend` directories.
+The directory contains both `backend` and `frontend` subdirectories.
 
 ---
 
@@ -128,22 +114,13 @@ FAPSHI_API_KEY=your_api_key_here
 _Add UI screenshots or a demo GIF here if available._
 
 ---
-
 ## ❓ FAQs
 
 **Q: Can I use this project in production?**  
 A: Yes, you can adapt and build on it for production use.
 
-**Q: What’s the difference between Direct Pay and Initiate Pay?**  
-Follow this article: [Direct Pay vs Initiate Pay](https://www.fapshi.com/en/help-and-support/direct-pay-vs-initiate-pay-all-you-need-to-know)
-
-**Q: Why is Direct Pay disabled in live mode?**  
-A: It’s restricted by default to prevent abuse. [Contact support](mailto:support@fapshi.com) to activate it in production. Submit your request with the following details:
-
-- Your Fapshi API user
-- Your website URL (if applicable)
-- Your business name
-- A clear description of your use case and why you need Direct Pay over Initiate Pay
+**Q: How do I implement Fapshi payments?**  
+A: Follow the implementation in this repository or check our [documentation](https://docs.fapshi.com) for more details.
 
 ---
 
