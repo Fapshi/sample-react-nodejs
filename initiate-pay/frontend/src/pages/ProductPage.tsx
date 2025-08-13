@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./ProductPage.css";
 import productImage from "../assets/headphones.png";
 import { StarIcon } from "lucide-react";
+import { paymentService } from "../services/paymentService";
 
 const product = {
   id: "prod_12345",
@@ -13,11 +14,55 @@ const product = {
 
 const ProductPage: React.FC = () => {
   const [showPaymentMessage, setShowPaymentMessage] = useState<boolean>(false);
+  const [paymentMessage, setPaymentMessage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleBuyNowClick = () => {
-    console.log('"Buy Now" clicked. Initiating payment flow...');
-    setShowPaymentMessage(true);
-    setTimeout(() => setShowPaymentMessage(false), 4000);
+  const handleBuyNowClick = async () => {
+    setIsLoading(true);
+    setShowPaymentMessage(false);
+
+    try {
+      console.log('Initiating payment for:', product.name, 'Amount:', product.price);
+
+      const paymentData = {
+        amount: product.price,
+        externalId: product.id,
+        message: `Payment for ${product.name}`
+      };
+
+      const response = await paymentService.initiatePayment(paymentData);
+
+      console.log('Payment initiated successfully:', response);
+
+      // Check if there's a payment link to redirect to
+      const paymentLink = response.link || response.paymentLink;
+
+      if (paymentLink) {
+        console.log('Redirecting to payment link:', paymentLink);
+        setPaymentMessage('Redirecting to payment...');
+        setShowPaymentMessage(true);
+
+        // Redirect to payment link after a short delay
+        setTimeout(() => {
+          window.location.href = paymentLink;
+        }, 1500);
+      } else {
+        // Fallback if no payment link is provided
+        setPaymentMessage(`Payment initiated! Transaction ID: ${response.transId}`);
+        setShowPaymentMessage(true);
+        setTimeout(() => setShowPaymentMessage(false), 6000);
+      }
+
+    } catch (error) {
+      console.error('Payment failed:', error);
+      setPaymentMessage(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setShowPaymentMessage(true);
+
+      // Hide error message after 4 seconds
+      setTimeout(() => setShowPaymentMessage(false), 4000);
+    } finally {
+      setIsLoading(false);
+    }
   };
   //const color = "#F6F6F6 #3f5cfd #FFFFFF";
 
@@ -51,14 +96,18 @@ const ProductPage: React.FC = () => {
 
             <div className="desktop-price">{product.price} XAF</div>
 
-            <button className="buy-now-button" onClick={handleBuyNowClick}>
-              Buy Now
+            <button
+              className="buy-now-button"
+              onClick={handleBuyNowClick}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Processing...' : 'Buy Now'}
             </button>
           </div>
 
           {showPaymentMessage && (
-            <div className="payment-message">
-              Redirecting to payment... (Backend not implemented yet)
+            <div className={`payment-message ${paymentMessage.includes('failed') ? 'error' : 'success'}`}>
+              {paymentMessage}
             </div>
           )}
         </div>

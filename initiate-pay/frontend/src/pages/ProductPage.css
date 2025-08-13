@@ -117,15 +117,38 @@ html, body {
   border: 1px solid #3f5cfd;
 }
 
+.buy-now-button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  border: 1px solid #ccc;
+}
+
+.buy-now-button:disabled:hover {
+  background-color: #ccc;
+  color: #666;
+  transform: none;
+  box-shadow: none;
+}
+
 .payment-message {
-  background-color: #e8f2ff;
-  color: #1a4480;
-  border: 1px solid #b3d9ff;
   padding: 15px;
   border-radius: 10px;
   margin-top: 20px;
   text-align: center;
   font-weight: 500;
+}
+
+.payment-message.success {
+  background-color: #e8f2ff;
+  color: #1a4480;
+  border: 1px solid #b3d9ff;
+}
+
+.payment-message.error {
+  background-color: #ffe8e8;
+  color: #d32f2f;
+  border: 1px solid #ffb3b3;
 }
 
 .desktop-price {
@@ -298,10 +321,36 @@ html, body {
     /* box-shadow: 0 4px 12px rgba(63, 92, 253, 0.3); */
   }
 
-  .payment-message {
+  .buy-now-button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    border: 1px solid #ccc;
+  }
+
+  .buy-now-button:disabled:hover {
+    background-color: #ccc;
+    color: #666;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .payment-message.success {
     background-color: #e8f2ff;
     color: #1a4480;
     border: 1px solid #b3d9ff;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .payment-message.error {
+    background-color: #ffe8e8;
+    color: #d32f2f;
+    border: 1px solid #ffb3b3;
     padding: 16px 20px;
     border-radius: 12px;
     margin-top: 20px;
