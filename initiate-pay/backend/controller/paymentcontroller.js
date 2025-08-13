@@ -1,131 +1,64 @@
-const axios = require('axios');
-require('dotenv').config();
+require('dotenv').config({ path: '.env' });
+const express = require('express');
+const cors = require('cors');
 
-// Fapshi API configuration - Using Sandbox
-const baseUrl = 'https://sandbox.fapshi.com';
+// Initialize Express app
+const app = express();
+const port = process.env.PORT || 5000;
 
-// Helper function to create error response
-const createError = (message, status = 500) => ({
-  success: false,
-  error: message,
-  status
+// Minimal middleware
+app.use(cors());
+app.use(express.json());
+
+// Log concise info from API JSON responses (avoid amounts)
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    try {
+      if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+        // For initiate endpoint, print a compact JSON with the specific fields the user wants
+        if (req.originalUrl.startsWith('/api/payment/initiate')) {
+          const compact = {
+            message: 'Payment successful',
+            link: body?.link || body?.paymentLink || body?.url,
+            transId: body?.transId || body?.transactionId,
+            dateInitiated: body?.dateInitiated || body?.createdAt || body?.initiatedAt,
+            redirectUrl: body?.redirectUrl || body?.redirect_url
+          };
+          console.log(JSON.stringify(compact, null, 2));
+        } else {
+          // Generic case: only print a single message-like field when present
+          const msg = body && (body.message || body.msg || body.status || body.error);
+          if (msg) {
+            console.log(`[API ${req.method} ${req.originalUrl}] message: ${msg}`);
+          } else {
+            console.log(`[API ${req.method} ${req.originalUrl}] response sent`);
+          }
+        }
+      }
+    } catch (_) {
+      // no-op
+    }
+    return originalJson(body);
+  };
+  next();
 });
 
-// Initiate payment
-const initiatePayment = async (req, res) => {
-  try {
-    const { amount } = req.body;
+// API Routes
+const paymentRoutes = require('./routes/paymentRoutes');
+app.use('/api/payment', paymentRoutes);
 
-    // Input validation
-    if (!amount) return res.status(400).json({ error: 'Amount is required' });
-    if (!Number.isInteger(amount)) return res.status(400).json({ error: 'Amount must be an integer' });
-    if (amount < 100) return res.status(400).json({ error: 'Amount cannot be less than 100 XAF' });
+// Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
-    const response = await axios.post(
-      `${baseUrl}/initiate-pay`,
-      { amount },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'apiuser': '31189c1e-6241-4b1f-8a52-63edbac297c1',
-          'apikey': 'FAK_TEST_481b28d80c3f61ec54ca'
-        },
-        timeout: 10000
-      }
-    );
-
-    // Log the full Fapshi response in the server terminal
-    console.log('\nPayment processed successfully:');
-
-    // Create a new response with our custom message
-    const paymentResponse = {
-      ...response.data,  // Include all original response data
-      message: 'Payment successful'  // Override the message
-    };
-
-    console.log(JSON.stringify(paymentResponse, null, 2) + '\n');
-
-    // Return our custom response
-    res.json(paymentResponse);
-
-  } catch (error) {
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || 'Failed to initiate payment';
-    res.status(status).json({ error: message });
-  }
-};
-
-// Get payment status
-const getPaymentStatus = async (req, res) => {
-  try {
-    const { transactionId } = req.params;
-
-    if (!transactionId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Transaction ID is required'
-      });
-    }
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'apiuser': '31189c1e-6241-4b1f-8a52-63edbac297c1',
-      'apikey': 'FAK_TEST_481b28d80c3f61ec54ca'
-    };
-
-    const response = await axios.get(
-      `${baseUrl}/payment-status/${transactionId}`,
-      {
-        headers,
-        timeout: 10000
-      }
-    );
-
-    const {
-      transId,
-      status,
-      medium,
-      serviceName,
-      transType,
-      amount,
-      email,
-      redirectUrl,
-      externalId,
-      userId,
-      financialTransId,
-      dateInitiated,
-      dateConfirmed
-    } = response.data;
-
-    res.json({
-      success: true,
-      transId,
-      status,
-      medium,
-      serviceName,
-      transType,
-      amount,
-      email,
-      redirectUrl,
-      externalId,
-      userId,
-      financialTransId,
-      dateInitiated,
-      dateConfirmed
-    });
-
-  } catch (error) {
-    console.error('Payment status error:', error.response?.data || error.message);
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || 'Failed to get payment status';
-    res.status(status).json({
-      success: false,
-      error: message
-    });
-  }
-};
-
-module.exports = {
-  initiatePayment,
-  getPaymentStatus
-};
+// Start server
+const server = app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+module.exports = { app, server };

@@ -1,97 +1,64 @@
 require('dotenv').config({ path: '.env' });
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 // Initialize Express app
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors({
-    origin: process.env.NODE_ENV === 'production'
-        ? process.env.CLIENT_URL
-        : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
-    credentials: true
-}));
-
+// Minimal middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Log concise info from API JSON responses (avoid amounts)
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    try {
+      if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+        // For initiate endpoint, print a compact JSON with the specific fields the user wants
+        if (req.originalUrl.startsWith('/api/payment/initiate')) {
+          const compact = {
+            message: 'Payment successful',
+            link: body?.link || body?.paymentLink || body?.url,
+            transId: body?.transId || body?.transactionId,
+            dateInitiated: body?.dateInitiated || body?.createdAt || body?.initiatedAt,
+            redirectUrl: body?.redirectUrl || body?.redirect_url
+          };
+          console.log(JSON.stringify(compact, null, 2));
+        } else {
+          // Generic case: only print a single message-like field when present
+          const msg = body && (body.message || body.msg || body.status || body.error);
+          if (msg) {
+            console.log(`[API ${req.method} ${req.originalUrl}] message: ${msg}`);
+          } else {
+            console.log(`[API ${req.method} ${req.originalUrl}] response sent`);
+          }
+        }
+      }
+    } catch (_) {
+      // no-op
+    }
+    return originalJson(body);
+  };
+  next();
+});
 
 // API Routes
-const paymentRoutes = require('./routes/paymentroutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 app.use('/api/payment', paymentRoutes);
 
-// Health check endpoint
+// Health check
 app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
-    });
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../client/build')));
-
-    // Handle React routing, return all requests to React app
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-    });
-}
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Server error:', err);
-    res.status(500).json({
-        success: false,
-        error: process.env.NODE_ENV === 'development'
-            ? err.message
-            : 'Internal server error'
-    });
-});
-
-// Start the server
+// Start server
 const server = app.listen(port, () => {
-    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
-    console.log(`API available at http://localhost:${port}/api`);
+  console.log(`Server running on port ${port}`);
 });
-
-// Handle server errors
-server.on('error', (error) => {
-    if (error.syscall !== 'listen') {
-        throw error;
-    }
-
-    // Handle specific listen errors with friendly messages
-    switch (error.code) {
-        case 'EACCES':
-            console.error(`Port ${port} requires elevated privileges`);
-            process.exit(1);
-            break;
-        case 'EADDRINUSE':
-            console.error(`Port ${port} is already in use`);
-            process.exit(1);
-            break;
-        default:
-            throw error;
-    }
-});
-
-// Handle process termination
-process.on('SIGTERM', () => {
-    console.log('SIGTERM received. Shutting down gracefully');
-    server.close(() => {
-        console.log('Process terminated');
-    });
-});
-
-// Only start the server if this file is run directly (not when imported)
-if (require.main === module) {
-    // No need to do anything here, server is already started
-}
-
-// Export for testing
 module.exports = { app, server };
-// Unhandled rejection handler is now in the startServer function
