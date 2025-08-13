@@ -1,6 +1,7 @@
 import React from "react";
 import "./PaymentSuccess.css"
 import checkIcon from "../assets/check.png";
+import { Link } from "react-router-dom";
 
 const PaymentSuccess: React.FC = () => {
   const transaction = {
@@ -46,7 +47,7 @@ const PaymentSuccess: React.FC = () => {
         </div>
 
         {/* BUTTON */}
-        <button className="done-button">Done</button>
+       <Link to="/">   <button className="done-button">Done</button> </Link>
       </div>
     </div>
   );

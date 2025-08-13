@@ -42,9 +42,8 @@ const ProductPage: React.FC = () => {
         console.log('Redirecting to payment link:', paymentLink);
 
         // Keep loading state active and redirect immediately
-        // Don't set isLoading to false since we're redirecting
         window.location.href = paymentLink;
-        return; // Exit early to avoid setting isLoading to false
+        return; // Exit early 
       } else {
         // Fallback if no payment link is provided
         setPaymentMessage(`Payment initiated! Transaction ID: ${response.transId}`);
@@ -67,7 +66,7 @@ const ProductPage: React.FC = () => {
   return (
     <div className="page-container">
       <div className="product-card">
-        {/* MODIFICATION START: Wrap image in its own container for flexbox styling */}
+
         <div className="product-image-container">
           <img
             src={product.imageUrl}
