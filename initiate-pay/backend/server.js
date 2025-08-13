@@ -23,7 +23,10 @@ app.use((req, res, next) => {
                         link: body?.link || body?.paymentLink || body?.url,
                         transId: body?.transId || body?.transactionId,
                         dateInitiated: body?.dateInitiated || body?.createdAt || body?.initiatedAt,
-                        redirectUrl: body?.redirectUrl || body?.redirect_url
+                        redirectUrl: body?.redirectUrl || body?.redirect_url,
+                        amount: body?.amount,
+                        email: body?.email,
+                        phone: body?.phone
                     };
                     console.log(JSON.stringify(compact, null, 2));
                 } else {
