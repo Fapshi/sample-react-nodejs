@@ -8,7 +8,8 @@ if (!resolvedApiUser || !resolvedApiKey) {
 }
 // Fapshi API configuration
 const config = {
-  baseUrl: process.env.FAPSHI_BASE_URL || 'https://sandbox.fapshi.com',
+
+  baseUrl: process.env.FAPSHI_BASE_URL || 'https://live.fapshi.com',
   timeout: parseInt(process.env.API_TIMEOUT || '10000', 10),
   headers: {
     'Content-Type': 'application/json',
