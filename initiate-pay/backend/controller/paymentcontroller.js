@@ -3,8 +3,10 @@ require('dotenv').config();
 
 // Fapshi API configuration
 const fapshiConfig = require('../config/fapshi.config');
+
 // Models
 const Payment = require('../models/Payment');
+
 
 // Helper function to create error response
 const createError = (message, status = 500) => ({
@@ -79,13 +81,6 @@ const initiatePayment = async (req, res) => {
     } catch (dbErr) {
       console.error('DB create payment error:', dbErr.message);
     }
-
-  } catch (error) {
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || 'Failed to initiate payment';
-    res.status(status).json({ error: message });
-  }
-};
 
 // Get payment status
 const getPaymentStatus = async (req, res) => {
@@ -165,17 +160,6 @@ const getPaymentStatus = async (req, res) => {
     } catch (dbErr) {
       console.error('DB update payment error:', dbErr.message);
     }
-
-  } catch (error) {
-    console.error('Payment status error:', error.response?.data || error.message);
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || 'Failed to get payment status';
-    res.status(status).json({
-      success: false,
-      error: message
-    });
-  }
-};
 
 module.exports = {
   initiatePayment,
