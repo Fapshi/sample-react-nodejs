@@ -7,7 +7,6 @@ const fapshiConfig = require('../config/fapshi.config');
 // Models
 const Payment = require('../models/Payment');
 
-
 // Helper function to create error response
 const createError = (message, status = 500) => ({
   success: false,
@@ -24,20 +23,14 @@ const initiatePayment = async (req, res) => {
     if (!amount) return res.status(400).json({ error: 'Amount is required' });
     if (!Number.isInteger(amount)) return res.status(400).json({ error: 'Amount must be an integer' });
     if (amount < 100) return res.status(400).json({ error: 'Amount cannot be less than 100 XAF' });
-    
+
     // Prepare payment payload
     const paymentPayload = { amount };
-    if (redirectUrl) {
-      paymentPayload.redirectUrl = redirectUrl;
-    }
-    if (email) {
-      paymentPayload.email = email;
-    }
-    if (phone) {
-      paymentPayload.phone = phone;
-    }
-    // Note: 'medium' intentionally not supported
-    
+    if (redirectUrl) paymentPayload.redirectUrl = redirectUrl;
+    if (email) paymentPayload.email = email;
+    if (phone) paymentPayload.phone = phone;
+
+    // Call Fapshi API
     const response = await axios.post(
       `${fapshiConfig.baseUrl}/initiate-pay`,
       paymentPayload,
@@ -46,18 +39,16 @@ const initiatePayment = async (req, res) => {
         timeout: fapshiConfig.timeout
       }
     );
-    
-    // Create a new response with our custom message
+
+    // Build custom response
     const paymentResponse = {
-      ...response.data,  // Include all original response data from Fapshi
+      ...response.data,
       message: 'Payment successful',
-      // Echo back client-provided values for frontend Success page
       amount,
       email: email || response.data?.email || undefined,
       phone: phone || response.data?.phone || undefined
     };
-    
-    // Return our custom response
+
     res.json(paymentResponse);
 
     // Persist payment (fire-and-forget)
@@ -81,16 +72,20 @@ const initiatePayment = async (req, res) => {
     } catch (dbErr) {
       console.error('DB create payment error:', dbErr.message);
     }
+  } catch (err) {
+    res.status(500).json(createError(err.message));
+  }
+};
 
 // Get payment status
 const getPaymentStatus = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    
+
     if (!transactionId) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Transaction ID is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'Transaction ID is required'
       });
     }
 
@@ -138,7 +133,7 @@ const getPaymentStatus = async (req, res) => {
     // Update persisted payment (fire-and-forget)
     try {
       await Payment.updateOne(
-        { transId: transId },
+        { transId },
         {
           $set: {
             status,
@@ -160,6 +155,10 @@ const getPaymentStatus = async (req, res) => {
     } catch (dbErr) {
       console.error('DB update payment error:', dbErr.message);
     }
+  } catch (err) {
+    res.status(500).json(createError(err.message));
+  }
+};
 
 module.exports = {
   initiatePayment,
