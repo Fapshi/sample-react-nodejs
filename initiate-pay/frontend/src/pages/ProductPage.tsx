@@ -28,7 +28,7 @@ const ProductPage: React.FC = () => {
         amount: product.price,
         externalId: product.id,
         message: `Payment for ${product.name}`,
-        redirectUrl: 'http://localhost:5173/payment-success' // Replace with actual success page URL
+        redirectUrl: 'http://localhost:5173/payment-success' 
       };
 
       const response = await paymentService.initiatePayment(paymentData);
@@ -43,7 +43,7 @@ const ProductPage: React.FC = () => {
 
         // Keep loading state active and redirect immediately
         window.location.href = paymentLink;
-        return; // Exit early 
+        return; 
       } else {
         // Fallback if no payment link is provided
         setPaymentMessage(`Payment initiated! Transaction ID: ${response.transId}`);
